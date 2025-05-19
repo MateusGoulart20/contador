@@ -1,4 +1,4 @@
-package exercicios.contador;
+package exercicios.contador.models;
 
 public class Tarefa {
     private String descricao;

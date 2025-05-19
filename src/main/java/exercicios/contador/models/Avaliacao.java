@@ -1,4 +1,4 @@
-package exercicios.contador;
+package exercicios.contador.models;
 
 import java.util.List;
 
