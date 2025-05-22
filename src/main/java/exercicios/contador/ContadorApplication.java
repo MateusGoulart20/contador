@@ -3,6 +3,7 @@ package exercicios.contador;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
 import org.hibernate.Hibernate;
@@ -13,10 +14,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.transaction.annotation.Transactional;
 
 import exercicios.contador.models.Categoria;
+import exercicios.contador.models.Fornecedor;
 import exercicios.contador.models.Pedido;
 import exercicios.contador.models.Produto;
 import exercicios.contador.models.ProdutoCategoria;
 import exercicios.contador.repository.CategoriaRepository;
+import exercicios.contador.repository.FornecedorRepository;
 import exercicios.contador.repository.PedidoRepository;
 import exercicios.contador.repository.ProdutoCategoriaRepository;
 import exercicios.contador.repository.ProdutoRepository;
@@ -33,6 +36,7 @@ public class ContadorApplication implements CommandLineRunner {
 	private final CategoriaRepository categoriaRepository;
 	private final ProdutoRepository produtoRepository;
 	private final ProdutoCategoriaRepository produtoCategoriaRepository;
+	private final FornecedorRepository fornecedorRepository;
 	private Scanner leitura = new Scanner(System.in);
 	
 	public static ContadorApplication get(){return singleton;}
@@ -40,6 +44,7 @@ public class ContadorApplication implements CommandLineRunner {
 	public CategoriaRepository getCategoriaRepository(){return categoriaRepository;}
 	public ProdutoRepository getProdutoRepository(){return produtoRepository;}
 	public ProdutoCategoriaRepository getProdutoCategoriaRepository(){return produtoCategoriaRepository;}
+	public FornecedorRepository getFornecedorRepository(){return fornecedorRepository;}
 	
 	//@Autowired
 	ContadorApplication(
@@ -47,11 +52,13 @@ public class ContadorApplication implements CommandLineRunner {
 		, CategoriaRepository categoriaRepository
 		, ProdutoRepository produtoRepository
 		, ProdutoCategoriaRepository produtoCategoriaRepository
+		, FornecedorRepository fornecedorRepository
 	){
 		this.pedidoRepository = pedidoRepository;
 		this.categoriaRepository = categoriaRepository;
 		this.produtoRepository = produtoRepository;
 		this.produtoCategoriaRepository = produtoCategoriaRepository;
+		this.fornecedorRepository = fornecedorRepository;
 		singleton = this;
 	}
 
@@ -79,6 +86,10 @@ public class ContadorApplication implements CommandLineRunner {
 	5 - Registrar Pedidos
 	6 - Registrar Categorias
 	7 - Relacionar Produto & Categoria
+	
+	11 - Editar Produtos
+	12 - Registrar Fornecedor
+	13 - Listar Fornecedor
 
 	0 - Sair                                 
 """;
@@ -89,13 +100,13 @@ public class ContadorApplication implements CommandLineRunner {
     
             switch (opcao) {
                 case 1:
-					listarProdutos();
+					listarProduto();
                     break;
                 case 2:
 					listarPedidos();
                     break;
                 case 3: 
-					listarCategorias();
+					listarCategoria();
                     break;
                 case 4: 
                     registrarProduto();
@@ -110,7 +121,15 @@ public class ContadorApplication implements CommandLineRunner {
                     demoRelacao();
 					registrarRelacao();
                     break;
-                case 0:
+				case 11:
+					editarProduto();
+				break;
+				case 12: 
+					registrarFornecedor();
+                case 13:
+					listarFornecedor();
+				break;
+				case 0:
                     System.out.println("Saindo...");
                     break;
                 default:
@@ -119,7 +138,7 @@ public class ContadorApplication implements CommandLineRunner {
         }
 	}
 
-	private void listarProdutos(){
+	private void listarProduto(){
         List<Produto> series = produtoRepository.findAll();
         series.stream()
             	.sorted(Comparator.comparing(Produto::getNome))
@@ -132,10 +151,17 @@ public class ContadorApplication implements CommandLineRunner {
            		.forEach(System.out::println);
     }
 
-	private void listarCategorias() {
+	private void listarCategoria() {
 		List<Categoria> series = categoriaRepository.findAll();
         series.stream()
             	.sorted(Comparator.comparing(Categoria::getNome))
+            	.forEach(System.out::println);
+	}
+	
+	private void listarFornecedor() {
+		List<Fornecedor> series = fornecedorRepository.findAll();
+        series.stream()
+            	.sorted(Comparator.comparing(Fornecedor::getNome))
             	.forEach(System.out::println);
 	}	
 
@@ -168,6 +194,16 @@ public class ContadorApplication implements CommandLineRunner {
 
 		Categoria categoria = new Categoria(nome);
 		categoriaRepository.save(categoria);
+	}
+
+	private void registrarFornecedor(){
+		String nome;
+
+		System.out.println("Insira o nome da fornecedor");
+		nome = leitura.nextLine();
+
+		Fornecedor fornecedor = new Fornecedor(nome);
+		fornecedorRepository.save(fornecedor);
 	}
 
 	private void demoRelacao(){
@@ -260,5 +296,92 @@ public class ContadorApplication implements CommandLineRunner {
 				.forEach(System.out::println);
 
 		System.out.println();
+	}
+
+
+	public void editarProduto(){
+		listarProduto();
+		Produto produto;
+		Optional<Produto> produtoOpcional;
+
+		String nome, t;
+		Double valor;
+		Integer inteiro;
+		Long longo;
+
+		List<Produto> produtos = produtoRepository.findAll();
+        produtos.stream()
+            	.sorted(Comparator.comparing(Produto::getNome))
+				.map(Produto::demo)
+            	.forEach(System.out::println);
+
+		while(true){
+			System.out.println("Qual deseja buscar?");
+			t = leitura.nextLine();
+			if(t.equals("sair")) return;
+			try{
+				longo = Long.parseLong(t);
+				produtoOpcional = produtoRepository.findById(longo);
+				if(produtoOpcional.isPresent())
+					break;
+				System.out.println("Nao encontrado.");
+			} catch (NumberFormatException e){
+				System.out.println("?");
+			}
+		}
+		produto = produtoOpcional.get();
+
+		System.out.println("Confirma nome? "+produto.getNome());
+		t = leitura.nextLine();
+		if(!t.isEmpty()) produto.setNome(t);
+		
+		while(true){
+			System.out.println("Confirma o valor? "+produto.getPreco());
+			t = leitura.nextLine();
+			if(t.isEmpty()) break;
+
+			try{
+				valor = Double.parseDouble(t);
+				produto.setPreco(valor);
+				break;
+			} catch (NumberFormatException e){
+				System.out.println("?");
+			}
+		}
+		
+		List<Fornecedor> fornecedores = fornecedorRepository.findAll();
+        fornecedores.stream()
+            	.sorted(Comparator.comparing(Fornecedor::getNome))
+				.map(Fornecedor::demo)
+            	.forEach(System.out::println);
+		Optional<Fornecedor> fornecedorOpcional = Optional.empty();
+		while(true){
+			System.out.println("Confirma o Fornecedor? "+(
+				(produto.getFornecedor() == null)
+				? "[Inexistente]" 
+				: produto.getFornecedor().toString()
+			));
+			t = leitura.nextLine();
+			if(t.isEmpty()) break;
+			if(t.equals("sair")) return;
+
+			try{
+				longo = Long.parseLong(t);
+				
+				fornecedorOpcional = fornecedorRepository.findById(longo);
+				if(fornecedorOpcional.isPresent()) break;
+
+				System.out.println("Nao encontrado.");
+
+			} catch (NumberFormatException e){
+				System.out.println("?");
+			}
+		}
+		
+		if(fornecedorOpcional.isPresent())produto.setFornecedor(fornecedorOpcional.get());
+		produtoRepository.save(produto);
+		
+		
+		listarProduto();
 	}
 }

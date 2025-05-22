@@ -14,6 +14,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
@@ -32,6 +33,8 @@ public class Produto {
     @OneToMany(mappedBy = "produto", cascade = CascadeType.ALL)
     private List<ProdutoCategoria> categorias;
 
+    @ManyToOne
+    private Fornecedor fornecedor;
     //private String categoria;
 
     public Produto(){}
@@ -45,26 +48,13 @@ public class Produto {
         this.preco = preco;
         //this.categoria = categoria;
     }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public void setPreco(double preco) {
-        this.preco = preco;
-    }
-
-    public double getPreco() {
-        return preco;
-    }
-
-    public void setCategorias(List<ProdutoCategoria> categorias) {
-        this.categorias = categorias;
-    }
+    public String getNome() {return nome;}
+    public void setNome(String nome) {this.nome = nome;}
+    public void setPreco(double preco) {this.preco = preco;}
+    public double getPreco() {return preco;}
+    public void setFornecedor(Fornecedor fornecedor) {this.fornecedor = fornecedor;}
+    public Fornecedor getFornecedor() {return fornecedor;}
+    public void setCategorias(List<ProdutoCategoria> categorias) {this.categorias = categorias;}
 
     /*//*/
 
@@ -103,16 +93,12 @@ public class Produto {
 
     // Método para adicionar a relação
     public void addCategoria(ProdutoCategoria produtoCategoria) {
-        //this.categorias=getCategorias();
         categorias.add(produtoCategoria);
-        //produtoCategoria.setProduto(this);
     }
 
     // Método para remover a relação
     public void removeCategoria(ProdutoCategoria produtoCategoria) {
-        //this.categorias=getCategorias();
         categorias.remove(produtoCategoria);
-        //produtoCategoria.setProduto(null);
     }
 
 
@@ -120,17 +106,17 @@ public class Produto {
     @Override
     public String toString() {
         return "Produto{"
-                +"nome='" + nome + '\''
-                +", preco=" + preco
+                +"nome='"+nome+ '\''
+                +", preco="+preco
                 +", categoria=[" + ((getCategorias() == null)
                         ? "null"
                         : getCategorias().stream()
                                 .map(e -> e.demo()) 
                                 .collect(java.util.stream.Collectors.joining(", ")) )
-                +"]}";
+                +"]"
+                +", fornecedor="+fornecedor
+                +"}";
     }
 
-    public String demo(){
-        return "Produto(id="+id+", nome="+nome+")";
-    }
+    public String demo(){return "Produto(id="+id+", nome="+nome+")";}
 }
