@@ -183,6 +183,38 @@ public class ContadorApplication implements CommandLineRunner {
             }
         }
 	}
+	private Double lerDouble(String mensagem){
+		String t;
+		Double valor;
+		while(true){
+			System.out.println(mensagem+" (ex: 2.0)");
+			t = leitura.nextLine();
+			if(t.equals("sair"))return null;
+			try{
+				valor = Double.parseDouble(t);
+				break;
+			} catch (NumberFormatException e){
+				System.out.println("?");
+			}
+		}
+		return valor;
+	}
+	private Long lerLong(String mensagem){
+		String t;
+		Long valor;
+		while(true){
+			System.out.println(mensagem);
+			t = leitura.nextLine();
+			if(t.equals("sair"))return null;
+			try{
+				valor = Long.parseLong(t);
+				break;
+			} catch (NumberFormatException e){
+				System.out.println("?");
+			}
+		}
+		return valor;
+	}
 
 	private void listarProduto(){
         List<Produto> series = produtoRepository.findAll();
@@ -196,14 +228,12 @@ public class ContadorApplication implements CommandLineRunner {
            		.sorted(Comparator.comparing(Pedido::getData))
            		.forEach(System.out::println);
     }
-
 	private void listarCategoria() {
 		List<Categoria> series = categoriaRepository.findAll();
         series.stream()
             	.sorted(Comparator.comparing(Categoria::getNome))
             	.forEach(System.out::println);
 	}
-	
 	private void listarFornecedor() {
 		List<Fornecedor> series = fornecedorRepository.findAll();
         series.stream()
@@ -213,25 +243,16 @@ public class ContadorApplication implements CommandLineRunner {
 
 	private void registrarProduto(){
 		String nome, t;
-		Double valor;
-
+		
 		System.out.println("Insira o nome");
 		nome = leitura.nextLine();
 		
-		while(true){
-			System.out.println("Insira o valor (ex: 2.0)");
-			t = leitura.nextLine();
-			try{
-				valor = Double.parseDouble(t);
-				break;
-			} catch (NumberFormatException e){
-				System.out.println("?");
-			}
-		}
+		Double valor = lerDouble("Insira o valor");
+		if(valor==null) return;
+
 		Produto produto = new Produto(nome,valor);
 		produtoRepository.save(produto);
-	}
-	
+	}	
 	private void registrarCategoria(){
 		String nome;
 
@@ -241,7 +262,6 @@ public class ContadorApplication implements CommandLineRunner {
 		Categoria categoria = new Categoria(nome);
 		categoriaRepository.save(categoria);
 	}
-
 	private void registrarFornecedor(){
 		String nome;
 
@@ -288,30 +308,12 @@ public class ContadorApplication implements CommandLineRunner {
 	
 	private void registrarRelacao(){
 
-		String t;
-		Long produtoId, categoriaId;
-		while(true){
-			System.out.println("Insira o id de produto");
-			t = leitura.nextLine();
-			if(t.equals("sair"))return;
-			try{
-				produtoId = Long.parseLong(t);
-				break;
-			} catch (NumberFormatException e){
-				System.out.println("?");
-			}
-		}
-		while(true){
-			System.out.println("Insira o id de categoria");
-			t = leitura.nextLine();
-			if(t.equals("sair"))return;
-			try{
-				categoriaId = Long.parseLong(t);
-				break;
-			} catch (NumberFormatException e){
-				System.out.println("?");
-			}
-		}
+		Long produtoId = lerLong("Insira o id de produto");
+		if(produtoId==null)return;
+		
+		Long categoriaId = lerLong("Insira o id de categoria");
+		if(categoriaId==null)return;
+		
 	
 		Produto produto = produtoRepository.findById(produtoId)
         		.orElseThrow(() -> new RuntimeException("Produto não encontrado!"));
@@ -365,6 +367,7 @@ public class ContadorApplication implements CommandLineRunner {
 				.map(Produto::demo)
             	.forEach(System.out::println);
 
+		
 		while(true){
 			System.out.println("Qual deseja buscar?");
 			t = leitura.nextLine();
@@ -559,37 +562,17 @@ public class ContadorApplication implements CommandLineRunner {
 	}
 	//JPA.04.11 - Retorne a contagem de produtos cujo preço seja maior que o valor fornecido.
 	private void contarProdutosPorPrecoMinimo(){
-		String t;
-		Double valor;
-		while(true){
-			System.out.println("Insira o valor minimo");
-			t = leitura.nextLine();
-			if(t.equals("sair"))return;
-			try{
-				valor = Double.parseDouble(t);
-				break;
-			} catch (NumberFormatException e){
-				System.out.println("?");
-			}
-		}
+		Double valor = lerDouble("Insira o valor minimo");
+		if(valor == null)return;
 		Long cont = produtoRepository.countByPrecoGreaterThan(valor);
 		System.out.println(cont);
 	}
 	//JPA.04.12 - Retorne produtos com preço menor que o valor fornecido ou cujo nome contenha o termo especificado.
 	private void listarProdutoPorPrecoMaximoOuPorNome(){
 		String t;
-		Double valor;
-		while(true){
-			System.out.println("Insira o preco maximo");
-			t = leitura.nextLine();
-			if(t.equals("sair"))return;
-			try{
-				valor = Double.parseDouble(t);
-				break;
-			} catch (NumberFormatException e){
-				System.out.println("?");
-			}
-		}
+		Double valor = lerDouble("Insira o preco maximo");
+		if(valor == null)return;
+
 		System.out.println("Insira o termo");
 		t = leitura.nextLine();
 		if(t.equals("sair"))return;
@@ -614,4 +597,53 @@ public class ContadorApplication implements CommandLineRunner {
 		List<Produto> produtos = produtoRepository.findTop5ByCategoriasCategoriaNomeContainingIgnoreCaseOrderByPrecoAsc(t);
 		produtos.stream().forEach(System.out::println);
 	}
+	//JPA.05.01 - Crie uma consulta que retorne os produtos com preço maior que um valor
+	private void listarProdutosPrecoMinimoJPQL(){
+		Double precoMinimo;
+		List<Produto> produtos = produtoRepository.listarProdutosPrecoMinimoJPQL(precoMinimo);
+	}
+	//JPA.05.02 - Crie uma consulta que retorne os produtos ordenados pelo preço crescente.
+	private void listarProdutosOrdenadosPrecoCrescenteJPQL(){
+		List<Produto> produtos = produtoRepository.listarProdutosOrdenadosPrecoCrescenteJPQL();
+	}
+	//JPA.05.03 - Crie uma consulta que retorne os produtos ordenados pelo preço decrescente.
+	private void listarProdutosOrdenadosPrecoDerescenteJPQL(){
+		List<Produto> produtos = produtoRepository.listarProdutosOrdenadosPrecoDerescenteJPQL();
+	}
+	//JPA.05.04 - Crie uma consulta que retorne os produtos que comecem com uma letra específica.
+	private void listarProdutosComecadosComLetraJPQL(){
+		var letra = leitura.nextLine();
+		List<Produto> produtos = produtoRepository.listarProdutosComecadosComLetraJPQL(letra);
+	}
+	//JPA.05.05 - Crie uma consulta que retorne os pedidos feitos entre duas datas.
+	// pedidos
+	//JPA.05.06 - Crie uma consulta que retorne a média de preços dos produtos.
+	private void mediaProdutosJPQL(){
+		Double media = pedidoRepository.mediaProdutosJPQL();
+	}
+	//JPA.05.07 - Crie uma consulta que retorne o preço máximo de um produto em uma categoria
+	private void buscarProdutoComMaiorPrecoJPQL(){
+		Double maiorPreco = produtoRepository.buscarProdutoComMaiorPrecoJPQL();
+	}
+	//JPA.05.08 - Crie uma consulta para contar o número de produtos por categoria.
+	private void contarProdutoPorCategoriaJPQL(){
+		Categoria categoria = buscarCategoria();
+		Integer contagem = produtoRepository.contarProdutoPorCategoriaJPQL(categoria);
+	}
+	//JPA.05.09 - Crie uma consulta para filtrar categorias com mais de 10 produtos.
+	private void listarCategoriasComMaisDe10JPQL(){
+		List<Categoria> categorias = categoriaRepository.listarCategoriasComMaisDe10JPQL();
+	}
+	//JPA.05.10 - Crie uma consulta para retornar os produtos filtrados por nome ou por categoria.
+	private void listarProdutosPorCategoriaOuNomeJPQL(){
+		Categoria categoria = buscarCategoria();
+		System.out.println("Qual o nome do produto?");
+		String nome = leitura.nextLine();
+		List<Produto> produtos = produtoRepository.listarProdutosPorCategoriaOuNomeJPQL(categoria, nome);
+	}
+	//JPA.05.11 - Crie uma consulta nativa para buscar os cinco produtos mais caros
+	private void listarTop5ProdutosCarosNATIVE(){
+		List<Produto> produtos = produtoRepository.listarTop5ProdutosCarosNATIVE();
+	}
+
 }

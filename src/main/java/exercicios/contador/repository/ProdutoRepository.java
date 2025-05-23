@@ -15,8 +15,8 @@ import exercicios.contador.models.Categoria;
 public interface ProdutoRepository
 extends JpaRepository<Produto, Long>{
         //@Query("SELECT p.categorias FROM Produto p JOIN FETCH p.categorias WHERE p.id = :id")
-        @Query("SELECT c FROM Produto p JOIN p.categorias c WHERE p.id = :id")
-        Optional<List<ProdutoCategoria>> findCategoriasById(@Param("id") Long id);
+        //@Query("SELECT c FROM Produto p JOIN p.categorias c WHERE p.id = :id")
+        //Optional<List<ProdutoCategoria>> findCategoriasById(@Param("id") Long id);
 
         @Query("SELECT p FROM Produto p JOIN FETCH p.categorias WHERE p.id = :id")
         Optional<Produto> findByIdWithProdutoCategorias(@Param("id") Long id);
@@ -29,7 +29,7 @@ extends JpaRepository<Produto, Long>{
                 WHERE cp.categoria.id = :idCategoria
         """)
         List<Produto> findProdutosByCategoria(@Param("idCategoria") Long idCategoria);
-        List<Produto> findCategoriaCategoriaId(@Param("idCategoria") Long idCategoria);
+        List<Produto> findByCategoriasCategoriaId(@Param("idCategoria") Long idCategoria);
         @Query("""
                 SELECT cp.produto 
                 FROM ProdutoCategoria cp 
@@ -60,4 +60,12 @@ extends JpaRepository<Produto, Long>{
         List<Produto> findTop3ByOrderByPrecoDesc();
 
         List<Produto> findTop5ByCategoriasCategoriaNomeContainingIgnoreCaseOrderByPrecoAsc(String t);
+        List<Produto> listarProdutosPrecoMinimoJPQL(Double precoMinimo);
+        List<Produto> listarProdutosOrdenadosPrecoCrescenteJPQL();
+        List<Produto> listarProdutosOrdenadosPrecoDerescenteJPQL();
+        List<Produto> listarProdutosComecadosComLetraJPQL(String letra);
+        Double buscarProdutoComMaiorPrecoJPQL();
+        Integer contarProdutoPorCategoriaJPQL(Categoria categoria);
+        List<Produto> listarProdutosPorCategoriaOuNomeJPQL(Categoria categoria, String nome);
+        List<Produto> listarTop5ProdutosCarosNATIVE();
 }
