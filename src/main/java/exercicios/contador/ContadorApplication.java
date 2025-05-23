@@ -79,18 +79,30 @@ public class ContadorApplication implements CommandLineRunner {
         while(opcao != 0){
             var menu = 
 """
-	1 - Listar Produtos
-	2 - Listar Pedidos
-	3 - Listar Categorias
-	4 - Registrar Produtos
-	5 - Registrar Pedidos
-	6 - Registrar Categorias
-	7 - Relacionar Produto & Categoria
-	
+	 1 - Listar Produtos
+	 2 - Listar Pedidos
+	 3 - Listar Categorias
+	 4 - Registrar Produtos
+	 5 - Registrar Pedidos
+	 6 - Registrar Categorias
+	 7 - Relacionar Produto & Categoria
+	 8 -
+	 9 -
+	10 -
 	11 - Editar Produtos
 	12 - Registrar Fornecedor
 	13 - Listar Fornecedor
-
+	14 - Listar produtos por categoria
+	15 - Listar produtos por preco minimo.
+	16 - Listar produtos por preco maximo.
+	17 - Listar produtos por trecho de nome.
+	18 - Listar produtos por Categoria e preco crescente.
+	19 - Listar produtos por Categoria e preco decrescente.
+	20 - Contar produtos por Categoria.
+	21 - Contar produtos por preco minimo
+	22 - Listar produtos por preco maximo ou trecho do nome
+	23 - Top 3 produtos caros.
+	24 - Top 5 produtos baratos por categoria.
 	0 - Sair                                 
 """;
     
@@ -126,8 +138,42 @@ public class ContadorApplication implements CommandLineRunner {
 				break;
 				case 12: 
 					registrarFornecedor();
+				break;
                 case 13:
 					listarFornecedor();
+				break;
+				case 14: 
+					listarProdutosPorCategoria();
+				break;
+				case 15:
+					listarProdutosPorPrecoMinimo();
+				break;
+				case 16:
+					listarProdutosPorPrecoMaximo();
+				break;
+				case 17:
+					listarProdutosPorTrechoNome();
+				break;
+				case 18:
+					listarProdutosPorCategoriaPorPrecoCrescente();
+				break;
+				case 19:
+					listarProdutosPorCategoriaPorPrecoDecrescente();
+				break;
+				case 20:
+					contarProdutosPorCategoria();
+				break;
+				case 21:
+					contarProdutosPorPrecoMinimo();
+				break;
+				case 22:
+					listarProdutoPorPrecoMaximoOuPorNome();
+				break;
+				case 23:
+					top3ProdutosCaros();
+				break;
+				case 24:
+					top5ProdutosBaratosPorCategoria();
 				break;
 				case 0:
                     System.out.println("Saindo...");
@@ -210,21 +256,8 @@ public class ContadorApplication implements CommandLineRunner {
 		// Listagem
 		System.out.println();
 		
-		List<Produto> produtos = produtoRepository.findAll();
-        produtos.stream()
-            	.sorted(Comparator.comparing(Produto::getNome))
-				.map(Produto::demo)
-            	.forEach(System.out::println);
-				
-		System.out.println();
-				
-		List<Categoria> categorias = categoriaRepository.findAll();
-		categorias.stream()
-				.sorted(Comparator.comparing(Categoria::getNome))
-				.map(Categoria::demo)
-				.forEach(System.out::println);
-				
-		System.out.println();
+		demoProduto();
+		demoCategoria();
 
 		List<ProdutoCategoria> produtoCategorias = produtoCategoriaRepository.findAll();
 		produtoCategorias.stream()
@@ -233,30 +266,47 @@ public class ContadorApplication implements CommandLineRunner {
 		System.out.println();
 
 	}
+	private void demoProduto(){
+		List<Produto> produtos = produtoRepository.findAll();
+        produtos.stream()
+            	.sorted(Comparator.comparing(Produto::getNome))
+				.map(Produto::demo)
+            	.forEach(System.out::println);
+				
+		System.out.println();
+	}
+	private void demoCategoria(){
+		List<Categoria> categorias = categoriaRepository.findAll();
+		categorias.stream()
+				.sorted(Comparator.comparing(Categoria::getNome))
+				.map(Categoria::demo)
+				.forEach(System.out::println);
+				
+		System.out.println();
+	}
 
 	
-	@Transactional
-	public void registrarRelacao(){
+	private void registrarRelacao(){
 
 		String t;
 		Long produtoId, categoriaId;
 		while(true){
 			System.out.println("Insira o id de produto");
 			t = leitura.nextLine();
+			if(t.equals("sair"))return;
 			try{
 				produtoId = Long.parseLong(t);
 				break;
 			} catch (NumberFormatException e){
-				if(t.equals("sair"))return;
 				System.out.println("?");
 			}
 		}
 		while(true){
 			System.out.println("Insira o id de categoria");
 			t = leitura.nextLine();
+			if(t.equals("sair"))return;
 			try{
 				categoriaId = Long.parseLong(t);
-				if(t.equals("sair"))return;
 				break;
 			} catch (NumberFormatException e){
 				System.out.println("?");
@@ -299,7 +349,7 @@ public class ContadorApplication implements CommandLineRunner {
 	}
 
 
-	public void editarProduto(){
+	private void editarProduto(){
 		listarProduto();
 		Produto produto;
 		Optional<Produto> produtoOpcional;
@@ -383,5 +433,185 @@ public class ContadorApplication implements CommandLineRunner {
 		
 		
 		listarProduto();
+	}
+
+	// JPA.04.02 - Retorne todos os produtos associados a uma categoria específica.
+	private void listarProdutosPorCategoria(){
+		List<Categoria> categorias = categoriaRepository.findAll();
+		categorias.stream()
+				.sorted(Comparator.comparing(Categoria::getNome))
+				.map(Categoria::demo)
+				.forEach(System.out::println);
+		String t;
+		Long categoriaId;
+		while(true){
+			System.out.println("Insira o id de categoria");
+			t = leitura.nextLine();
+			if(t.equals("sair"))return;
+			try{
+				categoriaId = Long.parseLong(t);
+				break;
+			} catch (NumberFormatException e){
+				System.out.println("?");
+			}
+		}
+	
+		Categoria categoria = categoriaRepository.findById(categoriaId)
+        		.orElseThrow(() -> new RuntimeException("Categoria não encontrada!"));
+
+		System.out.println(categoria.getProdutos());
+	}
+	// JPA.04.03 Retorne produtos com preço maior que o valor fornecido.
+	private void listarProdutosPorPrecoMinimo(){
+		String t;
+		Double valor;
+		while(true){
+			System.out.println("Insira o valor minimo de preco para buscar produtos");
+			t = leitura.nextLine();
+			if(t.equals("sair"))return;
+			try{
+				valor = Double.parseDouble(t);
+				break;
+			} catch (NumberFormatException e){
+				System.out.println("?");
+			}
+		}
+		List<Produto> produtos = produtoRepository.findByPrecoGreaterThanOrderByPrecoDesc(valor);
+		produtos.stream().forEach(System.out::println);
+	}
+	// JPA.04.04 Retorne produtos com preço menor que o valor fornecido.
+	private void listarProdutosPorPrecoMaximo(){
+		String t;
+		Double valor;
+		while(true){
+			System.out.println("Insira o valor maximo de preco para buscar produtos");
+			t = leitura.nextLine();
+			if(t.equals("sair"))return;
+			try{
+				valor = Double.parseDouble(t);
+				break;
+			} catch (NumberFormatException e){
+				System.out.println("?");
+			}
+		}
+		List<Produto> produtos = produtoRepository.findByPrecoLessThanOrderByPrecoAsc(valor);
+		produtos.stream().forEach(System.out::println);
+	}
+	//JPA.04.05 - Retorne produtos cujo nome contenha o termo especificado.
+	private void listarProdutosPorTrechoNome(){
+		String t;
+		System.out.println("Insira trecho do nome");
+		t = leitura.nextLine();
+		List<Produto> produtos = produtoRepository.findByNomeContaining(t);
+		System.out.println("Lista por trecho de nome "+t);
+		produtos.stream().forEach(System.out::println);
+	}
+	//JPA.04.06 - Retorne pedidos que ainda não possuem uma data de entrega. 
+	//JPA.04.07 - Retorne pedidos com data de entrega preenchida. 
+	//JPA.04.08 - Retorne produtos de uma categoria ordenados pelo preço de forma crescente.
+	private void listarProdutosPorCategoriaPorPrecoCrescente(){
+		String t;
+		Long idCategoria;
+		demoCategoria();
+		while(true){
+			System.out.println("Insira o numero da categoria");
+			t = leitura.nextLine();
+			if(t.equals("sair"))return;
+			try{
+				idCategoria = Long.parseLong(t);
+				break;
+			} catch (NumberFormatException e){
+				System.out.println("?");
+			}
+		}
+		List<Produto> produtos = produtoRepository.findProdutosByCategoriaPorPrecoAsc(idCategoria);
+		produtos.stream().forEach(System.out::println);
+	}
+	//JPA.04.09 - Retorne produtos de uma categoria ordenados pelo preço de forma decrescente.
+	private void listarProdutosPorCategoriaPorPrecoDecrescente(){
+		String t;
+		Long idCategoria;
+		demoCategoria();
+		while(true){
+			System.out.println("Insira o numero da categoria");
+			t = leitura.nextLine();
+			if(t.equals("sair"))return;
+			try{
+				idCategoria = Long.parseLong(t);
+				break;
+			} catch (NumberFormatException e){
+				System.out.println("?");
+			}
+		}
+		List<Produto> produtos = produtoRepository.findByCategoriasCategoriaIdOrderByPrecoDesc(idCategoria);
+		produtos.stream().forEach(System.out::println);
+	}
+	//JPA.04.10 - Retorne a contagem de produtos em uma categoria específica.
+	private void contarProdutosPorCategoria(){
+		String t;
+		demoCategoria();
+		System.out.println("Insira o nome da categoria");
+		t = leitura.nextLine();
+		if(t.equals("sair"))return;
+		
+		Long cont = produtoRepository.countByCategoriasCategoriaNome(t);
+		System.out.println(cont);
+	}
+	//JPA.04.11 - Retorne a contagem de produtos cujo preço seja maior que o valor fornecido.
+	private void contarProdutosPorPrecoMinimo(){
+		String t;
+		Double valor;
+		while(true){
+			System.out.println("Insira o valor minimo");
+			t = leitura.nextLine();
+			if(t.equals("sair"))return;
+			try{
+				valor = Double.parseDouble(t);
+				break;
+			} catch (NumberFormatException e){
+				System.out.println("?");
+			}
+		}
+		Long cont = produtoRepository.countByPrecoGreaterThan(valor);
+		System.out.println(cont);
+	}
+	//JPA.04.12 - Retorne produtos com preço menor que o valor fornecido ou cujo nome contenha o termo especificado.
+	private void listarProdutoPorPrecoMaximoOuPorNome(){
+		String t;
+		Double valor;
+		while(true){
+			System.out.println("Insira o preco maximo");
+			t = leitura.nextLine();
+			if(t.equals("sair"))return;
+			try{
+				valor = Double.parseDouble(t);
+				break;
+			} catch (NumberFormatException e){
+				System.out.println("?");
+			}
+		}
+		System.out.println("Insira o termo");
+		t = leitura.nextLine();
+		if(t.equals("sair"))return;
+		List<Produto> produtos = produtoRepository.findByPrecoLessThanOrNomeContainingIgnoreCase(valor,t);
+		produtos.stream().forEach(System.out::println);
+	}
+	//JPA.04.13 - Retorne pedidos feitos após uma data específica.
+	//JPA.04.14 - Retorne pedidos feitos antes de uma data específica.
+	//JPA.04.15 - Retorne pedidos feitos em um intervalo de datas.
+	//JPA.04.16 - Retorne os três produtos mais caros.
+	private void top3ProdutosCaros(){
+		List<Produto> produtos = produtoRepository.findTop3ByOrderByPrecoDesc();
+		produtos.stream().forEach(System.out::println);
+	}
+	//JPA.04.17 - Retorne os cinco produtos mais baratos de uma categoria.
+	private void top5ProdutosBaratosPorCategoria(){
+		String t;
+		demoCategoria();
+		System.out.println("Insira o termo");
+		t = leitura.nextLine();
+		if(t.equals("sair"))return;
+		List<Produto> produtos = produtoRepository.findTop5ByCategoriasCategoriaNomeContainingIgnoreCaseOrderByPrecoAsc(t);
+		produtos.stream().forEach(System.out::println);
 	}
 }

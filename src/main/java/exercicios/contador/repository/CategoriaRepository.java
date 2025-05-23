@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import exercicios.contador.models.Categoria;
+import exercicios.contador.models.Produto;
 import exercicios.contador.models.ProdutoCategoria;
 
 public interface CategoriaRepository 
@@ -17,4 +18,8 @@ extends JpaRepository<Categoria, Long>{
 
         @Query("SELECT c FROM Categoria c JOIN FETCH c.produtos WHERE c.id = :id")
         Optional<Categoria> findByIdWithProdutoCategorias(@Param("id") Long id);
+
+
+        List<Categoria> findByProdutosProduto(Produto produto);
+        List<Categoria> findByProdutos(ProdutoCategoria produtoCategoria);
 }

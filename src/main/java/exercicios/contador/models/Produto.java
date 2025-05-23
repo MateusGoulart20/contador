@@ -61,6 +61,7 @@ public class Produto {
     
 
     public List<ProdutoCategoria> getProdutoCategoria() {
+        /*/
         if (!Hibernate.isInitialized(categorias)) {
             Optional<Produto> trans = ContadorApplication.get()
                     .getProdutoRepository()
@@ -69,18 +70,25 @@ public class Produto {
             if(trans.get().categorias == null) return null;
             this.categorias = trans.get().getProdutoCategoria();
             return this.categorias;
-            /*/
-            Hibernate.initialize(this);
-            /*/
+            //Hibernate.initialize(this);
         }
         return categorias;
+        /*/
+        return ContadorApplication.get()
+            .getProdutoCategoriaRepository()
+            .findByProduto(this);
     }
     public List<Categoria> getCategorias(){
+        /*/
         List<ProdutoCategoria> trans =  getProdutoCategoria();
         if(trans == null) return null;
         return trans.stream()
-                .map(e -> e.getCategoria())
-                .toList();
+        .map(e -> e.getCategoria())
+        .toList();
+        /*/
+        return ContadorApplication.get()
+            .getCategoriaRepository()
+            .findByProdutosProduto(this);
     }
 
     /*/
