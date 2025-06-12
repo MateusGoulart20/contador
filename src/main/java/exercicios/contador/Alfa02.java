@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import exercicios.contador.models.Pessoa;
-import exercicios.contador.models.Produto;
 import exercicios.contador.models.ProdutoClassificado;
 import exercicios.contador.models.Tarefa;
 

@@ -13,13 +13,18 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.transaction.annotation.Transactional;
 
+import exercicios.contador.models.Artista;
 import exercicios.contador.models.Categoria;
 import exercicios.contador.models.Fornecedor;
+import exercicios.contador.models.Musica;
 import exercicios.contador.models.Pedido;
 import exercicios.contador.models.Produto;
 import exercicios.contador.models.ProdutoCategoria;
+import exercicios.contador.models.TipoArtista;
+import exercicios.contador.repository.ArtistaRepository;
 import exercicios.contador.repository.CategoriaRepository;
 import exercicios.contador.repository.FornecedorRepository;
+import exercicios.contador.repository.MusicaRepository;
 import exercicios.contador.repository.PedidoRepository;
 import exercicios.contador.repository.ProdutoCategoriaRepository;
 import exercicios.contador.repository.ProdutoRepository;
@@ -37,6 +42,8 @@ public class ContadorApplication implements CommandLineRunner {
 	private final ProdutoRepository produtoRepository;
 	private final ProdutoCategoriaRepository produtoCategoriaRepository;
 	private final FornecedorRepository fornecedorRepository;
+	private final ArtistaRepository artistaRepository;
+	private final MusicaRepository musicaRepository;
 	private Scanner leitura = new Scanner(System.in);
 	
 	public static ContadorApplication get(){return singleton;}
@@ -53,12 +60,16 @@ public class ContadorApplication implements CommandLineRunner {
 		, ProdutoRepository produtoRepository
 		, ProdutoCategoriaRepository produtoCategoriaRepository
 		, FornecedorRepository fornecedorRepository
+		, ArtistaRepository artistaRepository
+		, MusicaRepository musicaRepository
 	){
 		this.pedidoRepository = pedidoRepository;
 		this.categoriaRepository = categoriaRepository;
 		this.produtoRepository = produtoRepository;
 		this.produtoCategoriaRepository = produtoCategoriaRepository;
 		this.fornecedorRepository = fornecedorRepository;
+		this.artistaRepository = artistaRepository;
+		this.musicaRepository = musicaRepository;
 		singleton = this;
 	}
 
@@ -75,6 +86,87 @@ public class ContadorApplication implements CommandLineRunner {
 	}
 
 	void persistencia(){
+		var opcao = -1;
+        while(opcao != 0){
+            var menu = 
+	"""
+	 1 - Listar Artistas
+	 2 - Listar Musicas
+	 3 - Registrar Artistas
+	 4 - Registrar Musicas
+	 0 - Sair
+
+	""";
+            System.out.println(menu);
+            opcao = leitura.nextInt();
+            leitura.nextLine();
+			
+            switch (opcao) {
+                case 1:
+					listarArtistas();
+                    break;
+                case 2:
+					listarMusicas();
+                    break;
+                case 3: 
+					registrarArtistas();
+                    break;
+                case 4: 
+                    registrarMusicas();
+				break;
+				case 0:
+                    System.out.println("Saindo...");
+                    break;
+                default:
+                    System.out.println("Opção inválida");
+            }
+        }
+	}
+	
+	
+
+	private void registrarMusicas() {
+		System.out.println("Nome da musica");
+		String nome = leitura.nextLine();
+		
+		Artista artista = buscarArtista();
+		
+		Musica musica = new Musica(nome, artista);
+		musicaRepository.save(musica);
+	}
+
+	private Artista buscarArtista() {
+		listarArtistas();
+		System.out.println("Insira o nome do artista");
+		String nomeArtista = leitura.nextLine();
+		Artista artista = artistaRepository.findByNomeContainingIgnoreCase(nomeArtista)
+        		.orElseThrow(() -> new RuntimeException("Categoria não encontrada!"));
+
+		return artista;
+	}
+	private void registrarArtistas() {
+		System.out.println("Inserir o nome do artista");
+		String nome = leitura.nextLine();
+		
+		System.out.println("Inserir o tipo");
+		TipoArtista tipo = TipoArtista.fromString(leitura.nextLine());
+
+		Artista artista = new Artista(nome, tipo);
+		artistaRepository.save(artista);
+	}
+	private void listarMusicas() {
+		List<Musica> musicas = musicaRepository.findAll();
+        musicas.stream()
+            	.sorted(Comparator.comparing(Musica::getNome))
+            	.forEach(System.out::println);
+	}
+	private void listarArtistas() {
+		List<Artista> artistas = artistaRepository.findAll();
+        artistas.stream()
+            	.sorted(Comparator.comparing(Artista::getNome))
+            	.forEach(System.out::println);
+	}
+	void persistenciaProdutoCategoria(){
 		var opcao = -1;
         while(opcao != 0){
             var menu = 
@@ -103,13 +195,24 @@ public class ContadorApplication implements CommandLineRunner {
 	22 - Listar produtos por preco maximo ou trecho do nome
 	23 - Top 3 produtos caros.
 	24 - Top 5 produtos baratos por categoria.
+	25 - (JPQL) Pesquisa por preço minimo
+	26 - (JPQL) Produtos em crescente
+	27 - (JPQL) Produtos em decrescente
+	28 - (JPQL) Produtos iniciados com uma letra
+	29 - (JPQL) Média de preços dos produtos
+	30 - (JPQL) Teto de preço de uma categoria
+	31 - (JPQL) Contar produtos de uma categoria.
+	32 - (JPQL) Categorias com mais de 10 produtos.
+	33 - (JPQL) Produtos por nome ou categoria.
+	34 - (NATIVE) Cinco produtos mais caros.
+			
 	0 - Sair                                 
-""";
+	""";
     
             System.out.println(menu);
             opcao = leitura.nextInt();
             leitura.nextLine();
-    
+			
             switch (opcao) {
                 case 1:
 					listarProduto();
@@ -124,7 +227,7 @@ public class ContadorApplication implements CommandLineRunner {
                     registrarProduto();
 				break;
 				case 5: 
-                    //listarSeriesBuscadas();
+				//listarSeriesBuscadas();
 				break;
 				case 6: 
                     registrarCategoria();
@@ -137,10 +240,10 @@ public class ContadorApplication implements CommandLineRunner {
 					editarProduto();
 				break;
 				case 12: 
-					registrarFornecedor();
+				registrarFornecedor();
 				break;
                 case 13:
-					listarFornecedor();
+				listarFornecedor();
 				break;
 				case 14: 
 					listarProdutosPorCategoria();
@@ -174,6 +277,37 @@ public class ContadorApplication implements CommandLineRunner {
 				break;
 				case 24:
 					top5ProdutosBaratosPorCategoria();
+				break;
+				case 25:
+					listarProdutosPrecoMinimoJPQL();
+
+				break;
+				case 26:
+					listarProdutosOrdenadosPrecoCrescenteJPQL();
+				break;
+				case 27:
+					listarProdutosOrdenadosPrecoDerescenteJPQL();
+				break;
+				case 28:
+					listarProdutosComecadosComLetraJPQL();
+				break;
+				case 29:
+					mediaProdutosJPQL();
+				break;
+				case 30:
+					buscarProdutoComMaiorPrecoJPQL();
+				break;
+				case 31:
+					contarProdutoPorCategoriaJPQL();
+				break;
+				case 32:
+					listarCategoriasComMaisDe10JPQL();
+				break;
+				case 33:
+					listarProdutosPorCategoriaOuNomeJPQL();
+				break;
+				case 34:
+					listarTop5ProdutosCarosNATIVE();
 				break;
 				case 0:
                     System.out.println("Saindo...");
@@ -284,7 +418,6 @@ public class ContadorApplication implements CommandLineRunner {
 				.forEach(System.out::println);
 
 		System.out.println();
-
 	}
 	private void demoProduto(){
 		List<Produto> produtos = produtoRepository.findAll();
@@ -305,20 +438,27 @@ public class ContadorApplication implements CommandLineRunner {
 		System.out.println();
 	}
 
+	private Categoria buscarCategoria(){
+		demoCategoria();
+		Long categoriaId = lerLong("Insira o id de categoria");
+		if(categoriaId==null)return null;
+		Categoria categoria = categoriaRepository.findById(categoriaId)
+        		.orElseThrow(() -> new RuntimeException("Categoria não encontrada!"));
+		return categoria;
+	}
 	
 	private void registrarRelacao(){
+
+		var categoria = buscarCategoria();
 
 		Long produtoId = lerLong("Insira o id de produto");
 		if(produtoId==null)return;
 		
-		Long categoriaId = lerLong("Insira o id de categoria");
-		if(categoriaId==null)return;
 		
 	
 		Produto produto = produtoRepository.findById(produtoId)
         		.orElseThrow(() -> new RuntimeException("Produto não encontrado!"));
-		Categoria categoria = categoriaRepository.findById(categoriaId)
-        		.orElseThrow(() -> new RuntimeException("Categoria não encontrada!"));
+		
 		
 
 		ProdutoCategoria produtoCategoria = new ProdutoCategoria();
@@ -599,7 +739,8 @@ public class ContadorApplication implements CommandLineRunner {
 	}
 	//JPA.05.01 - Crie uma consulta que retorne os produtos com preço maior que um valor
 	private void listarProdutosPrecoMinimoJPQL(){
-		Double precoMinimo;
+		Double precoMinimo = lerDouble("Entre com o preço minimo.");
+		if(precoMinimo == null) return;
 		List<Produto> produtos = produtoRepository.listarProdutosPrecoMinimoJPQL(precoMinimo);
 	}
 	//JPA.05.02 - Crie uma consulta que retorne os produtos ordenados pelo preço crescente.
@@ -619,11 +760,12 @@ public class ContadorApplication implements CommandLineRunner {
 	// pedidos
 	//JPA.05.06 - Crie uma consulta que retorne a média de preços dos produtos.
 	private void mediaProdutosJPQL(){
-		Double media = pedidoRepository.mediaProdutosJPQL();
+		Double media = produtoRepository.mediaProdutosJPQL();
 	}
 	//JPA.05.07 - Crie uma consulta que retorne o preço máximo de um produto em uma categoria
 	private void buscarProdutoComMaiorPrecoJPQL(){
-		Double maiorPreco = produtoRepository.buscarProdutoComMaiorPrecoJPQL();
+		Categoria categoria = buscarCategoria();
+		Double maiorPreco = produtoRepository.buscarProdutoComMaiorPrecoDaCategoriaJPQL(categoria);
 	}
 	//JPA.05.08 - Crie uma consulta para contar o número de produtos por categoria.
 	private void contarProdutoPorCategoriaJPQL(){
@@ -644,6 +786,8 @@ public class ContadorApplication implements CommandLineRunner {
 	//JPA.05.11 - Crie uma consulta nativa para buscar os cinco produtos mais caros
 	private void listarTop5ProdutosCarosNATIVE(){
 		List<Produto> produtos = produtoRepository.listarTop5ProdutosCarosNATIVE();
+		produtos.stream()
+			.forEach(System.out::println);
 	}
 
 }

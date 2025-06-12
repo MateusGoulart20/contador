@@ -18,8 +18,20 @@ extends JpaRepository<Categoria, Long>{
 
         @Query("SELECT c FROM Categoria c JOIN FETCH c.produtos WHERE c.id = :id")
         Optional<Categoria> findByIdWithProdutoCategorias(@Param("id") Long id);
-
-
+        
+        
         List<Categoria> findByProdutosProduto(Produto produto);
         List<Categoria> findByProdutos(ProdutoCategoria produtoCategoria);
+        
+        @Query("""
+                SELECT c 
+                FROM Categoria c 
+                WHERE c IN (
+                       SELECT pc.categoria 
+                       FROM ProdutoCategoria pc
+                       GROUP BY pc.categoria 
+                       HAVING COUNT(pc.produto) > 10
+                ) 
+        """)
+        List<Categoria> listarCategoriasComMaisDe10JPQL();
 }

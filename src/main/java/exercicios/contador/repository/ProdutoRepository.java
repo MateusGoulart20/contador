@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -60,12 +61,77 @@ extends JpaRepository<Produto, Long>{
         List<Produto> findTop3ByOrderByPrecoDesc();
 
         List<Produto> findTop5ByCategoriasCategoriaNomeContainingIgnoreCaseOrderByPrecoAsc(String t);
+        
+        @Query("""
+                SELECT p 
+                FROM Produto p 
+                WHERE p.preco >= :precoMinimo
+        """)
         List<Produto> listarProdutosPrecoMinimoJPQL(Double precoMinimo);
+
+        @Query("""
+                SELECT p 
+                FROM Produto p 
+                ORDER BY p.preco ASC
+        """)
         List<Produto> listarProdutosOrdenadosPrecoCrescenteJPQL();
+
+         @Query("""
+                SELECT p 
+                FROM Produto p 
+                ORDER BY p.preco DESC
+        """)
         List<Produto> listarProdutosOrdenadosPrecoDerescenteJPQL();
+
+        @Query("""
+                SELECT p 
+                FROM Produto p
+                WHERE p.nome ILIKE :letra% 
+        """)
         List<Produto> listarProdutosComecadosComLetraJPQL(String letra);
-        Double buscarProdutoComMaiorPrecoJPQL();
+        @Query("""
+                SELECT MAX(p.preco)
+                FROM Produto p
+                WHERE p.id IN (
+                        SELECT pc.produto.id 
+                        FROM ProdutoCategoria pc 
+                        WHERE pc.categoria = :categoria
+                )
+        """)
+        Double buscarProdutoComMaiorPrecoDaCategoriaJPQL(Categoria categoria);
+
+        @Query("""
+                SELECT COUNT(p)
+                FROM Produto p
+                WHERE p IN (
+                        SELECT pc.produto 
+                        FROM ProdutoCategoria pc 
+                        WHERE pc.categoria = :categoria
+                )
+        """)
         Integer contarProdutoPorCategoriaJPQL(Categoria categoria);
+        @Query("""
+                SELECT p 
+                FROM Produto p
+                WHERE p.nome ILIKE %:nome% 
+                OR p IN (
+                        SELECT pc.produto 
+                        FROM ProdutoCategoria pc 
+                        WHERE pc.categoria = :categoria
+                ) 
+        """)
         List<Produto> listarProdutosPorCategoriaOuNomeJPQL(Categoria categoria, String nome);
+
+        @NativeQuery("""
+                SELECT * 
+                FROM produto 
+                ORDER BY valor DESC 
+                LIMIT 5
+        """)
         List<Produto> listarTop5ProdutosCarosNATIVE();
+        @Query("""
+                SELECT AVG(p.preco) 
+                FROM Produto p
+        """)
+        Double mediaProdutosJPQL();
 }
